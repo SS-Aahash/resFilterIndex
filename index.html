@@ -492,7 +492,11 @@ body {
                 selectedFiles.classList.add('show');
                 fileCount.textContent = `${pdfFiles.length} PDF file${pdfFiles.length !== 1 ? 's' : ''} selected`;
             } else {
+                alert("No PDFs in the selected folder.")
                 selectedFiles.classList.remove('show');
+                folderInput.value = "";
+                promptInput.value = "";
+                return;
             }
         });
 
