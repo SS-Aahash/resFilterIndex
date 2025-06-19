@@ -462,7 +462,6 @@ body {
         const progressBar = document.getElementById('progressBar');
         const progressFill = document.getElementById('progressFill');
 
-        // Auto-expand textarea functionality
         const promptInput = document.getElementById('promptInput');
         
         function autoExpand(textarea) {
@@ -481,7 +480,15 @@ body {
         folderInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
             const pdfFiles = files.filter( file => file.name.toLowerCase().endsWith(".pdf"))
-            if (pdfFiles.length > 0) {
+            console.log(pdfFiles.length)
+            if(pdfFiles.length > 5){
+                alert("We're at capacity, only 5 PDFs allowed");
+                folderInput.value = "";
+                promptInput.value = "";
+                selectedFiles.classList.remove('show');
+                return;
+            }
+            else if (pdfFiles.length > 0) {
                 selectedFiles.classList.add('show');
                 fileCount.textContent = `${pdfFiles.length} PDF file${pdfFiles.length !== 1 ? 's' : ''} selected`;
             } else {
@@ -505,12 +512,10 @@ body {
                 return;
             }
 
-            // Start loading state
             filterBtn.disabled = true;
             filterBtn.classList.add('loading');
             progressBar.classList.add('show');
             
-            // Simulate progress
             let progress = 0;
             const progressInterval = setInterval(() => {
                 progress += Math.random() * 15;
@@ -520,14 +525,15 @@ body {
 
             try {
                 const formData = new FormData();
-                
-                for (let file of files) {
-                    if(!file.name.toLowerCase().endsWith(".pdf")){continue;}
+
+                for (let file of files){
+                    if(!file.name.toLowerCase().endsWith(".pdf") || file.size/1024 > 500){continue;}
                     formData.append("pdf", file);
                 }
-                
+
                 formData.append("prompt", prompt);
 
+                // const res = await fetch('http://localhost:3000/summarize', {
                 const res = await fetch('https://server-nesw.onrender.com/summarize', {
                     method: 'POST',
                     body: formData
@@ -539,6 +545,8 @@ body {
                 if (res.status === 204) {
                     alert("No matching resumes found based on your criteria. Try adjusting your filtering requirements.");
                     selectedFiles.classList.remove('show');
+                    folderInput.value = "";
+                    promptInput.value = ""
                     return;
                 }
 
@@ -549,16 +557,14 @@ body {
                 a.download = "filtered_resumes.zip";
                 a.click();
                 
-                // Success feedback
                 setTimeout(() => {
                     alert("✅ Filtered resumes downloaded successfully!");
-                }, 100);
+                }, 200);
             } catch (error) {
                 clearInterval(progressInterval);
                 console.error('Error:', error);
                 alert("An error occurred while processing resumes. Please try again.");
             } finally {
-                // Reset loading state
                 filterBtn.disabled = false;
                 filterBtn.classList.remove('loading');
                 setTimeout(() => {
@@ -567,6 +573,8 @@ body {
                 }, 1000);
             }
             selectedFiles.classList.remove('show');
+            folderInput.value = "";
+            promptInput.value = "";
         }
     </script>
 </body>
